@@ -1,0 +1,53 @@
+package ratelimiter;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class RateLimiterTest {
+
+    @Test
+    public void testBasicLimit() {
+
+        RateLimiter limiter = new RateLimiter(3,10);
+
+        assertTrue(limiter.allowRequest("A",1));
+        assertTrue(limiter.allowRequest("A",2));
+        assertTrue(limiter.allowRequest("A",3));
+        assertFalse(limiter.allowRequest("A",9));
+    }
+
+    @Test
+    public void testWindowExpiration() {
+
+        RateLimiter limiter = new RateLimiter(3,10);
+
+        limiter.allowRequest("A",1);
+        limiter.allowRequest("A",2);
+        limiter.allowRequest("A",3);
+
+        assertTrue(limiter.allowRequest("A",12));
+    }
+
+    @Test
+    public void testDifferentUsers() {
+
+        RateLimiter limiter = new RateLimiter(2,5);
+
+        assertTrue(limiter.allowRequest("A",1));
+        assertTrue(limiter.allowRequest("A",2));
+        assertFalse(limiter.allowRequest("A",3));
+
+        assertTrue(limiter.allowRequest("B",1));
+        assertTrue(limiter.allowRequest("B",2));
+    }
+
+    @Test
+    public void testOutOfOrderTimestamps() {
+
+        RateLimiter limiter = new RateLimiter(2,5);
+
+        assertTrue(limiter.allowRequest("A",10));
+        assertTrue(limiter.allowRequest("A",2));
+        assertFalse(limiter.allowRequest("A",3));
+    }
+}
